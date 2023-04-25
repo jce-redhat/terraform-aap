@@ -1,0 +1,5 @@
+---
+# change to "dynamic" to use the cloud provider inventory plugin
+inventory_source: terraform
+
+...

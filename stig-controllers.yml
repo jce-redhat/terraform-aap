@@ -1,6 +1,10 @@
 ---
+- name: Build inventory from terraform state
+  ansible.builtin.import_playbook: terraform-inventory.yml
+  when: inventory_source == 'terraform'
+
 - name: Apply STIG to controllers
-  hosts: '{{ _target | default("controller") }}'
+  hosts: '{{ target | default("controller") }}'
   become: true
 
   vars:

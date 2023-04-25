@@ -1,4 +1,8 @@
 ---
+- name: Build inventory from terraform state
+  ansible.builtin.import_playbook: terraform-inventory.yml
+  when: inventory_source == 'terraform'
+
 - name: Install AAP
   hosts: bastion
 
@@ -8,10 +12,11 @@
 
   tasks:
     - name: Scan AAP nodes for SSH host keys
-      ansible.builtin.command: >
+      ansible.builtin.command: >-
         ssh-keyscan {{ item }}
-      loop: '{{ groups["controller"] + groups["hub"] | default([]) +
-                groups["database"] | default([]) }}'
+      loop: '{{ groups["controller"] + groups["hub"] +
+                groups["database"] | default([]) +
+                groups["execution"] | default([]) }}'
       register: _scanned_keys
       changed_when: false
 
