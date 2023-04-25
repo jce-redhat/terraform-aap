@@ -1,0 +1,6 @@
+plugin: amazon.aws.aws_ec2
+filters:
+  tag:aap_build_id: '{{ lookup("cloud.terraform.tf_output", "aap_build_id", project_path=terraform_local_dir) }}'
+keyed_groups:
+  - key: tags.aap_node_type
+    separator: ''

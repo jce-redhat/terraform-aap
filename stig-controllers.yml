@@ -1,0 +1,48 @@
+---
+- name: Apply STIG to controllers
+  hosts: '{{ _target | default("controller") }}'
+  become: true
+
+  vars:
+    # proxy through bastion since controllers don't allow public SSH
+    ansible_ssh_extra_args: '-o ProxyCommand="ssh -W %h:%p -q ec2-user@{{ groups.bastion[0] }}"'
+
+  tasks:
+    - name: Apply RHEL STIG to AAP controllers
+      ansible.builtin.include_role:
+        name: redhatofficial.rhel{{ ansible_distribution_major_version }}_stig
+        apply:
+          tags: stig
+      register: _apply_stig
+      tags: stig
+      vars:
+        sudo_remove_nopasswd: false
+        sudo_remove_no_authenticate: false
+        sysctl_user_max_user_namespaces: false
+        mount_option_tmp_noexec: false
+        mount_option_var_tmp_noexec: false
+
+    - name: Reboot controllers
+      ansible.builtin.reboot:
+        reboot_timeout: 120
+      when: _apply_stig is succeeded
+      tags: stig
+
+    - name: Apply STIG workarounds for AAP controllers
+      tags: workarounds
+      block:
+        - name: Set fapolicyd to permissive
+          ansible.builtin.lineinfile:
+            path: /etc/fapolicyd/fapolicyd.conf
+            line: 'permissive = 1'
+            regexp: '^permissive\s+='
+          notify: Restart fapolicyd
+
+  handlers:
+    - name: Restart fapolicyd
+      ansible.builtin.systemd:
+        name: fapolicyd
+        state: restarted
+
+...
+# vim: ft=yaml.ansible

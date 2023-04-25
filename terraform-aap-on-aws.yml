@@ -1,0 +1,38 @@
+---
+- name: Create AAP infrastructure nodes with terraform
+  hosts: '{{ target | default("localhost") }}'
+
+  vars_files:
+    - vars/terraform_aap.yml
+
+  tasks:
+    # cloud.terraform.git_plan seems to assume a plan file will exist
+    # in the repo, but plan files may contain sensitive information so
+    # check it out directly instead
+    - name: Clone terraform AAP infrastructure plan repo
+      ansible.builtin.git:
+        repo: '{{ terraform_aap_infra_repo }}'
+        version: '{{ terraform_aap_infra_repo_version | default(omit) }}'
+        dest: '{{ terraform_local_dir }}'
+        clone: true
+
+    - name: Apply terraform AAP infrastructure plan
+      cloud.terraform.terraform:
+        project_path: '{{ terraform_local_dir }}'
+        state: present
+        force_init: true
+        backend_config:
+          region: '{{ terraform_state_aws_region }}'
+          bucket: '{{ terraform_state_aws_bucket }}'
+          key: '{{ terraform_state_aws_bucket_key }}'
+        complex_vars: true
+        variables: '{{ terraform_tfvars }}'
+
+    - name: Create AWS dynamic inventory
+      ansible.builtin.template:
+        src: templates/aws_ec2.yml.j2
+        dest: '{{ playbook_dir }}/inventory/aws_ec2.yml'
+        mode: 0644
+
+...
+# vim: ft=yaml.ansible

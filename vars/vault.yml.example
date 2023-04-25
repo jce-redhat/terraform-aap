@@ -1,0 +1,10 @@
+---
+# create or refresh a token at https://access.redhat.com/management/api/
+# see https://access.redhat.com/articles/3626371 for details
+vault_aap_setup_down_offline_token: eyJhbGciO...J9.habJ-UU
+
+vault_aap_admin_password: 'my-admin-password'
+
+# set if pulling initial content from an external registry
+vault_registry_password: 'my-registry-password'
+...

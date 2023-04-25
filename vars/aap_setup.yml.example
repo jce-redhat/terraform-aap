@@ -1,0 +1,52 @@
+---
+# aap_setup_download role variables
+# https://github.com/redhat-cop/aap_utilities/blob/devel/roles/aap_setup_download/README.md
+aap_setup_down_offline_token: '{{ vault_aap_setup_down_offline_token }}'
+aap_setup_down_type: setup-bundle
+aap_setup_down_version: '2.3'
+
+# aap_setup_prep role variables
+# https://github.com/redhat-cop/aap_utilities/blob/devel/roles/aap_setup_prepare/README.md
+#
+# the example configuration below is for a simple installation on AWS
+# where the database is running on a single controller node
+#
+# the referenced host groups are created in the first play of the
+# build-aap-infrastructure.yml playbook and should not be changed
+aap_setup_prep_inv_nodes:
+  automationcontroller: '{{ groups["controller"] }}'
+  automationhub: '{{ groups["hub"] | default([]) }}'
+  database: '{{ groups["database"] | default([]) }}'
+  execution_nodes: '{{ groups["execution"] | default([]) }}'
+aap_setup_prep_inv_vars:
+  automationcontroller:
+    peers: execution_nodes
+    node_type: hybrid
+  all:
+    ansible_user: ec2-user
+    ansible_become: true
+    admin_password: '{{ vault_aap_admin_password }}'
+    pg_database: awx
+    pg_username: awx
+    pg_password: '{{ vault_aap_admin_password }}'
+    pg_sslmode: prefer
+    automationhub_admin_password: '{{ vault_aap_admin_password }}'
+    automationhub_pg_host: '{{ groups["controller"][0] }}'
+    automationhub_pg_database: automationhub
+    automationhub_pg_username: automationhub
+    automationhub_pg_password: '{{ vault_aap_admin_password }}'
+    automationhub_pg_sslmode: prefer
+    #automationhub_main_url: hub.example
+    automationhub_require_content_approval: false
+    automationhub_ssl_validate_certs: false
+    # don't pull EEs from registry since this is a bundle install
+    ee_from_hub_only: true
+
+# aap_setup_install vars
+# https://github.com/redhat-cop/aap_utilities/blob/devel/roles/aap_setup_install/README.md
+controller_hostname: '{{ groups["controller"][0] }}'
+controller_validate_certs: false
+ah_hostname: '{{ groups["hub"][0] }}'
+ah_validate_certs: false
+
+...

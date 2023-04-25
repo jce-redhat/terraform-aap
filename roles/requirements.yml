@@ -1,0 +1,10 @@
+
+---
+roles:
+  # RHEL 8 compliance roles from ComplianceAsCode
+  - name: redhatofficial.rhel8_stig
+    version: 0.1.66
+  # RHEL 9 compliance roles from ComplianceAsCode
+  - name: redhatofficial.rhel9_stig
+    version: 0.1.64
+...

@@ -1,0 +1,41 @@
+---
+- name: Install AAP
+  hosts: bastion
+
+  vars_files:
+    - vars/aap_setup.yml
+    - vars/vault.yml
+
+  tasks:
+    - name: Scan AAP nodes for SSH host keys
+      ansible.builtin.command: >
+        ssh-keyscan {{ item }}
+      loop: '{{ groups["controller"] + groups["hub"] | default([]) +
+                groups["database"] | default([]) }}'
+      register: _scanned_keys
+      changed_when: false
+
+    - name: Add AAP node SSH host keys to known_hosts
+      ansible.builtin.lineinfile:
+        path: ~/.ssh/known_hosts
+        line: '{{ item.stdout }}'
+        owner: '{{ ansible_user }}'
+        group: '{{ ansible_user }}'
+        mode: 0644
+        create: true
+      loop: '{{ _scanned_keys.results }}'
+
+    - name: Download AAP setup bundle
+      ansible.builtin.include_role:
+        name: infra.aap_utilities.aap_setup_download
+
+    - name: Prepare for AAP installation
+      ansible.builtin.include_role:
+        name: infra.aap_utilities.aap_setup_prepare
+
+    - name: Install AAP
+      ansible.builtin.include_role:
+        name: infra.aap_utilities.aap_setup_install
+
+...
+# vim: ft=yaml.ansible

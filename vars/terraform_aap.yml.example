@@ -1,0 +1,16 @@
+---
+terraform_build_name: my-aap-build
+terraform_aap_infra_repo: https://github.com/jce-redhat/terraform-aap-infra-aws
+terraform_local_dir: '~/{{ terraform_build_name }}'
+
+# overrides for variables.tf from the terraform configuration repo listed above
+terraform_tfvars:
+  aws_region: us-east-2
+  bastion_key_name: my-aws-key-pair-name
+
+# used by terraform S3 backend for storing state externally
+terraform_state_aws_region: us-east-2
+terraform_state_aws_bucket: my-tfstate-bucket
+terraform_state_aws_bucket_key: '{{ terraform_build_name }}.tfstate'
+
+...

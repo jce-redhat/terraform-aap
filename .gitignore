@@ -1,0 +1,6 @@
+collections/ansible_collections/
+inventory/aws_ec2.yml
+roles/redhatofficial.*
+vars/aap_setup.yml
+vars/terraform_aap.yml
+vars/vault.yml
