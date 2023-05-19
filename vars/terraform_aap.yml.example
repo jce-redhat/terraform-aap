@@ -9,6 +9,7 @@ terraform_tfvars:
   bastion_key_name: my-aws-key-pair-name
 
 # used by terraform S3 backend for storing state externally
+terraform_state_create_bucket: true
 terraform_state_aws_region: us-east-2
 terraform_state_aws_bucket: my-tfstate-bucket
 terraform_state_aws_bucket_key: '{{ terraform_build_name }}.tfstate'
