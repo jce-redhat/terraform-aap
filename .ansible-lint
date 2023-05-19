@@ -1,0 +1,13 @@
+---
+profile: production
+offline: true
+
+skip_list:
+  - "galaxy[no-changelog]"
+
+exclude_paths:
+  - collections/ansible_collections/
+  - roles/redhatofficial.*
+  - vars/vault.yml
+
+...
