@@ -13,6 +13,15 @@
         region: '{{ terraform_state_aws_region }}'
       when: terraform_state_create_bucket | bool
 
+    - name: Create SSH key pair used for AAP instances
+      amazon.aws.ec2_key:
+        name: '{{ terraform_build_name }}_key'
+        region: '{{ terraform_aws_region }}'
+        key_type: rsa
+      register: _ec2_key
+      notify: Write private key file
+      when: terraform_create_build_key | bool
+
     # cloud.terraform.git_plan seems to assume a plan file will exist
     # in the repo, but plan files may contain sensitive information so
     # check it out directly instead
@@ -41,6 +50,13 @@
         dest: '{{ playbook_dir }}/inventory/aws_ec2.yml'
         mode: 0644
       when: inventory_source == 'dynamic'
+
+  handlers:
+    - name: Write private key file
+      ansible.builtin.copy:
+        content: '{{ _ec2_key.key.private_key }}'
+        dest: '{{ playbook_dir }}/terraform_build_key.pem'
+        mode: 0600
 
 ...
 # vim: ft=yaml.ansible

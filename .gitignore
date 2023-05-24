@@ -4,3 +4,4 @@ roles/redhatofficial.*
 vars/aap_setup.yml
 vars/terraform_aap.yml
 vars/vault.yml
+terraform_build_key.pem

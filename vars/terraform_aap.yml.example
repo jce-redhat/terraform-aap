@@ -1,17 +1,26 @@
 ---
 terraform_build_name: my-aap-build
+terraform_aws_region: us-east-2
 terraform_aap_infra_repo: https://github.com/jce-redhat/terraform-aap-infra-aws
 terraform_local_dir: '~/{{ terraform_build_name }}'
 
-# overrides for variables.tf from the terraform configuration repo listed above
-terraform_tfvars:
-  aws_region: us-east-2
-  bastion_key_name: my-aws-key-pair-name
+# create a EC2 key pair for use by the terraformed instances
+terraform_create_build_key: true
 
-# used by terraform S3 backend for storing state externally
+# create an S3 bucket for storing terraform state
 terraform_state_create_bucket: true
-terraform_state_aws_region: us-east-2
+
+# terraform S3 state backend
+# NOTE: the bucket name must be globally unique.  if the s3_bucket
+# task returns "403 Forbidden" this may be because the bucket name
+# is not unique
 terraform_state_aws_bucket: my-tfstate-bucket
 terraform_state_aws_bucket_key: '{{ terraform_build_name }}.tfstate'
+terraform_state_aws_region: '{{ terraform_aws_region }}'
+
+# overrides for variables.tf from the terraform configuration repo listed above
+terraform_tfvars:
+  aws_region: '{{ terraform_aws_region }}'
+  bastion_key_name: '{{ terraform_build_name }}_key'
 
 ...
