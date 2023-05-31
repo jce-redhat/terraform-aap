@@ -1,0 +1,31 @@
+---
+- name: Install terraform
+  hosts: '{{ target | default("localhost") }}'
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Install terraform on RHEL 8 and above
+      when:
+        - ansible_distribution == 'Red Hat'
+        - ansible_distribution_major_version >= 8
+      block:
+        - name: Install prerequisites
+          ansible.builtin.dnf:
+            name: dnf-plugins-core
+            state: present
+
+        - name: Add HashiCorp Linux repository
+          ansible.builtin.command: >-
+            dnf config-manager --add-repo
+                https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+          args:
+            creates: /etc/yum.repos.d/hashicorp.repo
+
+        - name: Install terraform RPM
+          ansible.builtin.dnf:
+            name: terraform
+            state: present
+
+...
+# vim: ft=yaml.ansible
