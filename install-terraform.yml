@@ -7,8 +7,8 @@
   tasks:
     - name: Install terraform on RHEL 8 and above
       when:
-        - ansible_distribution == 'Red Hat'
-        - ansible_distribution_major_version >= 8
+        - ansible_distribution == 'RedHat'
+        - ansible_distribution_major_version >= '8'
       block:
         - name: Install prerequisites
           ansible.builtin.dnf:
