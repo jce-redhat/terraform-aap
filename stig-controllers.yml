@@ -2,10 +2,15 @@
 - name: Build inventory from terraform state
   ansible.builtin.import_playbook: terraform-inventory.yml
   when: inventory_source == 'terraform'
+  tags: always
 
 - name: Apply STIG to controllers
   hosts: '{{ target | default("controller") }}'
   become: true
+
+  vars_files:
+    # needed for AAP version
+    - vars/aap_setup.yml
 
   vars:
     # proxy through bastion since controllers don't allow public SSH
@@ -35,12 +40,14 @@
     - name: Apply STIG workarounds for AAP controllers
       tags: workarounds
       block:
+        # AAP versions 2.2 and below do not include fapolicyd rules
         - name: Set fapolicyd to permissive
           ansible.builtin.lineinfile:
             path: /etc/fapolicyd/fapolicyd.conf
             line: 'permissive = 1'
             regexp: '^permissive\s+='
           notify: Restart fapolicyd
+          when: aap_setup_down_version <= 2.2
 
   handlers:
     - name: Restart fapolicyd
