@@ -3,6 +3,8 @@
 # see https://access.redhat.com/articles/3626371 for details
 vault_aap_setup_down_offline_token: eyJhbGciO...J9.habJ-UU
 
+# this password will be used to log in to the automation controller and
+# private automation hub as the 'admin' user
 vault_aap_admin_password: 'my-admin-password'
 
 # set if pulling initial content from an external registry

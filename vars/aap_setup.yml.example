@@ -36,11 +36,13 @@ aap_setup_prep_inv_vars:
     automationhub_pg_username: automationhub
     automationhub_pg_password: '{{ vault_aap_admin_password }}'
     automationhub_pg_sslmode: prefer
-    #automationhub_main_url: hub.example
+    # automationhub_main_url: hub.example
     automationhub_require_content_approval: false
     automationhub_ssl_validate_certs: false
     # don't pull EEs from registry since this is a bundle install
     ee_from_hub_only: true
+    # uncomment in order to prevent uploading bundled collections to the hub
+    # automationhub_seed_collections: false
 
 # aap_setup_install vars
 # https://github.com/redhat-cop/aap_utilities/blob/devel/roles/aap_setup_install/README.md
