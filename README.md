@@ -2,6 +2,12 @@
 
 ## Quick start
 
+Before you begin, you will need the following information:
+
+* An offline token for downloading the AAP installation bundle.  One can be generated on the [Red Hat Customer Portal](https://access.redhat.com/management/api/).
+* An Automation Hub token for downloading content from the Red Hat Automation Hub.  One can be generated on the [Automation Hub](https://console.redhat.com/ansible/automation-hub/token)
+* An AWS access key and secret key, used by terraform to create the AAP infrastructure on AWS.
+
 ### Set up prerequisites
 
 1. Clone the repo and `cd` into the repo directory
@@ -28,9 +34,9 @@
    * `export ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN="automation-hub-token"`
    * Token can be generated at https://console.redhat.com/ansible/automation-hub/token
 
-7. `ansible-galaxy collection install -r collections/requirements.yml
+7. `ansible-galaxy collection install -r collections/requirements.yml`
 
-8. `ansible-galaxy role install -r roles/requirements.yml
+8. `ansible-galaxy role install -r roles/requirements.yml`
 
 9. Install the python boto3 requirement for amazon.aws
    `pip3 install --user boto3`
