@@ -40,14 +40,12 @@
     - name: Apply STIG workarounds for AAP controllers
       tags: workarounds
       block:
-        # AAP versions 2.2 and below do not include fapolicyd rules
         - name: Set fapolicyd to permissive
           ansible.builtin.lineinfile:
             path: /etc/fapolicyd/fapolicyd.conf
             line: 'permissive = 1'
             regexp: '^permissive\s+='
           notify: Restart fapolicyd
-          when: aap_setup_down_version <= 2.2
 
   handlers:
     - name: Restart fapolicyd
