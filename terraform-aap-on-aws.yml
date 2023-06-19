@@ -44,6 +44,12 @@
         complex_vars: true
         variables: '{{ terraform_tfvars }}'
 
+    - name: Create terraform.tfvars file
+      ansible.builtin.template:
+        src: templates/terraform.tfvars.j2
+        dest: '{{ terraform_local_dir }}/terraform.tfvars'
+        mode: 0644
+
     - name: Create AWS dynamic inventory
       ansible.builtin.template:
         src: templates/aws_ec2.yml.j2
