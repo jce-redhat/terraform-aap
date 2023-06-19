@@ -2,6 +2,8 @@
 collections:
   - name: amazon.aws
     source: https://cloud.redhat.com/api/automation-hub/
+  - name: ansible.controller
+    source: https://cloud.redhat.com/api/automation-hub/
   - name: cloud.terraform
     source: https://cloud.redhat.com/api/automation-hub/
 
@@ -9,6 +11,8 @@ collections:
   - name: infra.aap_utilities
     source: https://galaxy.ansible.com
   - name: infra.controller_configuration
+    source: https://galaxy.ansible.com
+  - name: infra.ah_configuration
     source: https://galaxy.ansible.com
 
   - name: community.general

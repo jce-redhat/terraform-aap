@@ -1,0 +1,46 @@
+---
+- name: Build inventory from terraform state
+  ansible.builtin.import_playbook: terraform-inventory.yml
+  when: inventory_source == 'terraform'
+
+- name: Configure Private Automation Hub
+  hosts: hub
+
+  vars_files:
+    - vars/vault.yml
+
+  vars:
+    # proxy through bastion since hubs don't allow public SSH
+    ansible_ssh_extra_args: '-o ProxyCommand="ssh -W %h:%p -q ec2-user@{{ groups.bastion[0] }}"'
+    # user-specific, from https://console.redhat.com/ansible/automation-hub/repositories
+    automation_hub_sync_url: https://console.redhat.com/api/automation-hub/content/6869326-synclist/
+
+  tasks:
+    - name: Install AAP
+      ansible.builtin.include_role:
+        name: infra.ah_configuration.{{ item }}
+      loop: '{{ ah_components }}'
+      vars:
+        ah_username: admin
+        ah_password: '{{ vault_aap_admin_password }}'
+        ah_hostname: '{{ inventory_hostname }}'
+        ah_validate_certs: false
+        ah_components:
+          - repository
+          - repository_sync
+        ah_repository_certified:
+          url: '{{ automation_hub_sync_url }}'
+          token: '{{ lookup("env", "ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN") }}'
+          wait: true
+          timeout: 1800
+        ah_repository_community:
+          url: https://galaxy.ansible.com/api/
+          requirements:
+            - community.crypto
+            - community.general
+            - community.vmware
+          wait: true
+          timeout: 600
+
+...
+# vim: ft=yaml.ansible
