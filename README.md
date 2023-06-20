@@ -49,7 +49,7 @@ Before you begin, you will need the following information:
 
 1. `ansible-playbook provision-infrastructure.yml`
 
-2. Add the build SSH key to the SSH agent: `ssh-add tf\_builds/\<terraform\_build\_name>\_key.pem`
+2. Add the build SSH key to the SSH agent: `ssh-add tf_builds/<terraform_build_name>_key.pem`
 
 3. Optionally, `ansible-playbook stig-controllers.yml` to apply the RHEL STIG to the controller node(s)
 
