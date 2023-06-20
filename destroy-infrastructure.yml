@@ -1,0 +1,28 @@
+---
+- name: Destroy AAP infrastructure nodes with terraform
+  hosts: '{{ target | default("localhost") }}'
+
+  vars_files:
+    - vars/terraform_aap.yml
+
+  tasks:
+    - name: Set terraform build directory fact
+      ansible.builtin.set_fact:
+        _tf_builddir: '{{ playbook_dir }}/tf_builds/{{ terraform_build_name }}'
+
+    - name: Destroy AAP infrastructure
+      cloud.terraform.terraform:
+        project_path: '{{ _tf_builddir }}'
+        state: absent
+
+    - name: Delete playbook-generated files
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - '{{ _tf_builddir }}/terraform.tfvars'
+        - '{{ _tf_builddir }}/local-state-copy.tfstate'
+        - '{{ playbook_dir }}/inventory/terraform_provider.yml'
+
+...
+# vim: ft=yaml.ansible
