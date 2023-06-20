@@ -47,7 +47,7 @@ Before you begin, you will need the following information:
 
 ### Create AAP infrastructure
 
-1. `ansible-playbook terraform-aap-on-aws.yml`
+1. `ansible-playbook provision-infrastructure.yml`
 
 2. Add the build SSH key to the SSH agent: `ssh-add tf\_builds/\<terraform\_build\_name>\_key.pem`
 
