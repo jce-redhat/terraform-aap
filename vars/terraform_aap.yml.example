@@ -2,7 +2,6 @@
 terraform_build_name: my-aap-build
 terraform_aws_region: us-east-2
 terraform_aap_infra_repo: https://github.com/jce-redhat/terraform-aap-infra-aws
-terraform_local_dir: '~/{{ terraform_build_name }}'
 
 # create a EC2 key pair for use by the terraformed instances
 terraform_create_build_key: true

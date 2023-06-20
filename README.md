@@ -49,9 +49,11 @@ Before you begin, you will need the following information:
 
 1. `ansible-playbook terraform-aap-on-aws.yml`
 
-2. Optionally, `ansible-playbook stig-controllers.yml` to apply the RHEL STIG to the controller node(s)
+2. Add the build SSH key to the SSH agent: `ssh-add tf\_builds/\<terraform\_build\_name>\_key.pem`
 
-3. `ansible-playbook install-aap.yml --ask-vault-pass`
+3. Optionally, `ansible-playbook stig-controllers.yml` to apply the RHEL STIG to the controller node(s)
+
+4. `ansible-playbook install-aap.yml --ask-vault-pass`
 
 ## The Details
 

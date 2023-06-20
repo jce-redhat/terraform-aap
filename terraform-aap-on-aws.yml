@@ -22,6 +22,10 @@
       notify: Write private key file
       when: terraform_create_build_key | bool
 
+    - name: Set Terraform build directory fact
+      ansible.builtin.set_fact:
+        _tf_builddir: '{{ playbook_dir }}/tf_builds/{{ terraform_build_name }}'
+
     # cloud.terraform.git_plan seems to assume a plan file will exist
     # in the repo, but plan files may contain sensitive information so
     # check it out directly instead
@@ -29,12 +33,12 @@
       ansible.builtin.git:
         repo: '{{ terraform_aap_infra_repo }}'
         version: '{{ terraform_aap_infra_repo_version | default(omit) }}'
-        dest: '{{ terraform_local_dir }}'
+        dest: '{{ _tf_builddir }}'
         clone: true
 
     - name: Apply terraform AAP infrastructure plan
       cloud.terraform.terraform:
-        project_path: '{{ terraform_local_dir }}'
+        project_path: '{{ _tf_builddir }}'
         state: present
         force_init: true
         backend_config:
@@ -47,13 +51,22 @@
     - name: Create terraform.tfvars file
       ansible.builtin.template:
         src: templates/terraform.tfvars.j2
-        dest: '{{ terraform_local_dir }}/terraform.tfvars'
+        dest: '{{ _tf_builddir }}/terraform.tfvars'
         mode: 0644
 
-    - name: Create AWS dynamic inventory
+    # currently the terraform_provider inventory plugin cannot
+    # read remote state, only state from a local file
+    - name: Make local copy of terraform state
+      # noqa no-changed-when
+      # don't use "creates:" to ensure the latest state is always pulled
+      ansible.builtin.shell:
+        cmd: terraform state pull > local-state-copy.tfstate
+        chdir: '{{ _tf_builddir }}'
+
+    - name: Create terraform dynamic inventory
       ansible.builtin.template:
-        src: templates/aws_ec2.yml.j2
-        dest: '{{ playbook_dir }}/inventory/aws_ec2.yml'
+        src: templates/terraform_provider.yml.j2
+        dest: '{{ playbook_dir }}/inventory/terraform_provider.yml'
         mode: 0644
       when: inventory_source == 'dynamic'
 
@@ -61,7 +74,7 @@
     - name: Write private key file
       ansible.builtin.copy:
         content: '{{ _ec2_key.key.private_key }}'
-        dest: '{{ playbook_dir }}/terraform_build_key.pem'
+        dest: '{{ playbook_dir }}/tf_builds/{{ terraform_build_name }}_key.pem'
         mode: 0600
 
 ...

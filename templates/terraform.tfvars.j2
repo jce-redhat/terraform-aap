@@ -1,0 +1,3 @@
+{% for key in terraform_tfvars %}
+{{ key }} = "{{ terraform_tfvars[key] }}"
+{% endfor %}

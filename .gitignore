@@ -1,7 +1,10 @@
 collections/ansible_collections/
-inventory/aws_ec2.yml
+inventory/terraform_provider.yml
+navigator-output/
 roles/redhatofficial.*
+tf_builds/
+!tf_builds/README.md
 vars/aap_setup.yml
 vars/terraform_aap.yml
 vars/vault.yml
-terraform_build_key.pem
+
