@@ -36,23 +36,24 @@
         dest: '{{ _tf_builddir }}'
         clone: true
 
-    - name: Apply terraform AAP infrastructure plan
-      cloud.terraform.terraform:
-        project_path: '{{ _tf_builddir }}'
-        state: present
-        force_init: true
-        backend_config:
-          region: '{{ terraform_state_aws_region }}'
-          bucket: '{{ terraform_state_aws_bucket }}'
-          key: '{{ terraform_state_aws_bucket_key }}'
-        complex_vars: true
-        variables: '{{ terraform_tfvars }}'
-
+    # rather than passing complex_vars to the cloud.terraform.terraform
+    # module, create a tfvars file that can be used when also running
+    # terraform commands manually
     - name: Create terraform.tfvars file
       ansible.builtin.template:
         src: templates/terraform.tfvars.j2
         dest: '{{ _tf_builddir }}/terraform.tfvars'
         mode: 0644
+
+    - name: Apply terraform AAP infrastructure plan
+      cloud.terraform.terraform:
+        project_path: '{{ _tf_builddir }}'
+        state: present
+        force_init: '{{ terraform_force_init | default(false) }}'
+        backend_config:
+          region: '{{ terraform_state_aws_region }}'
+          bucket: '{{ terraform_state_aws_bucket }}'
+          key: '{{ terraform_state_aws_bucket_key }}'
 
     # currently the terraform_provider inventory plugin cannot
     # read remote state, only state from a local file
@@ -68,7 +69,6 @@
         src: templates/terraform_provider.yml.j2
         dest: '{{ playbook_dir }}/inventory/terraform_provider.yml'
         mode: 0644
-      when: inventory_source == 'dynamic'
 
   handlers:
     - name: Write private key file
