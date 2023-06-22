@@ -9,7 +9,7 @@
   tasks:
     - name: Scan AAP nodes for SSH host keys
       ansible.builtin.command: >-
-        ssh-keyscan {{ item }}
+        ssh-keyscan {{ hostvars[item].ansible_host | default(item) }}
       loop: '{{ groups["controller"] + groups["hub"] +
                 groups["database"] | default([]) +
                 groups["execution"] | default([]) }}'
@@ -31,6 +31,10 @@
     - name: Download AAP setup bundle
       ansible.builtin.include_role:
         name: infra.aap_utilities.aap_setup_download
+        apply:
+          tags:
+            - download
+            - prepare
       tags:
         - download
         - prepare
@@ -38,6 +42,9 @@
     - name: Prepare for AAP installation
       ansible.builtin.include_role:
         name: infra.aap_utilities.aap_setup_prepare
+        apply:
+          tags:
+            - prepare
       tags: prepare
 
     - name: Install AAP
