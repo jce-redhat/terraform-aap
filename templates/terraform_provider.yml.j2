@@ -1,5 +1,6 @@
 ---
 plugin: cloud.terraform.terraform_provider
 project_path: {{ _tf_builddir }}
-state_file: {{ _tf_builddir }}/local-state-copy.tfstate
+# workaround to pull state from remote backend
+state_file: ""
 ...
