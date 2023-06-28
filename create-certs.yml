@@ -1,0 +1,162 @@
+---
+- name: Create demo CA key and certificate
+  hosts: '{{ target | default("localhost") }}'
+
+  vars_files:
+    - vars/vault.yml
+
+  tasks:
+    - name: Set CA material facts
+      ansible.builtin.set_fact:
+        _ca_key: '{{ playbook_dir }}/tf_builds/{{ ca_key_file | default("demo-ca.key") }}'
+        _ca_cert: '{{ playbook_dir }}/tf_builds/{{ ca_cert_file | default("demo-ca.pem") }}'
+
+    - name: Create private key with password protection
+      community.crypto.openssl_privatekey:
+        path: '{{ _ca_key }}'
+        passphrase: "{{ vault_ca_passphrase }}"
+        cipher: auto
+        type: RSA
+        size: 4096
+
+    - name: Create certificate signing request (CSR) for CA certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: '{{ _ca_key }}'
+        privatekey_passphrase: "{{ vault_ca_passphrase }}"
+        common_name: '{{ ca_common_name | default("Demo CA") }}'
+        use_common_name_for_san: false  # since we do not specify SANs, don't use CN as a SAN
+        basic_constraints:
+          - 'CA:TRUE'
+        basic_constraints_critical: true
+        key_usage:
+          - keyCertSign
+        key_usage_critical: true
+      register: _ca_csr
+
+    - name: Create self-signed CA certificate from CSR
+      community.crypto.x509_certificate:
+        path: '{{ _ca_cert }}'
+        csr_content: "{{ _ca_csr.csr }}"
+        privatekey_path: '{{ _ca_key }}'
+        privatekey_passphrase: "{{ vault_ca_passphrase }}"
+        provider: selfsigned
+
+- name: Create demo CA key and certificate
+  hosts: bastion
+  gather_facts: false
+
+  vars_files:
+    - vars/vault.yml
+
+  # TODO it may only be necessary to create a single cert for controllers
+  # and hubs that uses the load-balanced FQDN as the subject
+  tasks:
+    - name: Create client private key files
+      community.crypto.openssl_privatekey:
+        path: ~/{{ item }}.key
+      loop: '{{ groups.controller + groups.hub + groups.edacontroller}}'
+
+    - name: Create CSRs for controllers
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: '~/{{ item }}.key'
+        common_name: '{{ item }}'
+        subject_alt_name:
+          - DNS:{{ item }}
+          - DNS:controller.{{ item.split(".", 1)[1] }}
+      loop: '{{ groups.controller }}'
+      register: _controller_csr
+
+    # TODO this causes a new cert to be generated every time, might want to
+    # see if the cert files already exist before doing the next two steps
+    - name: Sign controller certificates with CA
+      community.crypto.x509_certificate_pipe:
+        csr_content: '{{ item.csr }}'
+        provider: ownca
+        ownca_path: '{{ playbook_dir }}/tf_builds/{{ ca_cert_file | default("demo-ca.pem") }}'
+        ownca_privatekey_path: '{{ playbook_dir }}/tf_builds/{{ ca_key_file | default("demo-ca.key") }}'
+        ownca_privatekey_passphrase: "{{ vault_ca_passphrase }}"
+        ownca_not_after: +30d  # valid for one year
+        ownca_not_before: "-1d"  # valid since yesterday
+      loop: '{{ _controller_csr.results }}'
+      register: _controller_certs
+      delegate_to: localhost
+
+    - name: Write controller certificate files
+      ansible.builtin.copy:
+        dest: '~/{{ item.item.item }}.pem'
+        content: '{{ item.certificate }}'
+        mode: 0644
+      loop: '{{ _controller_certs.results }}'
+
+    - name: Create CSRs for hubs
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: '~/{{ item }}.key'
+        common_name: '{{ item }}'
+        subject_alt_name:
+          - DNS:{{ item }}
+          - DNS:hub.{{ item.split(".", 1)[1] }}
+      loop: '{{ groups.hub }}'
+      register: _hub_csr
+
+    # TODO this causes a new cert to be generated every time, might want to
+    # see if the cert files already exist before doing the next two steps
+    - name: Sign hub certificates with CA
+      community.crypto.x509_certificate_pipe:
+        csr_content: '{{ item.csr }}'
+        provider: ownca
+        ownca_path: '{{ playbook_dir }}/tf_builds/{{ ca_cert_file | default("demo-ca.pem") }}'
+        ownca_privatekey_path: '{{ playbook_dir }}/tf_builds/{{ ca_key_file | default("demo-ca.key") }}'
+        ownca_privatekey_passphrase: "{{ vault_ca_passphrase }}"
+        ownca_not_after: +30d  # valid for one year
+        ownca_not_before: "-1d"  # valid since yesterday
+      loop: '{{ _hub_csr.results }}'
+      register: _hub_certs
+      delegate_to: localhost
+
+    - name: Write hub certificate files
+      ansible.builtin.copy:
+        dest: '~/{{ item.item.item }}.pem'
+        content: '{{ item.certificate }}'
+        mode: 0644
+      loop: '{{ _hub_certs.results }}'
+
+    - name: Create CSRs for EDA controllers
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: '~/{{ item }}.key'
+        common_name: '{{ item }}'
+        subject_alt_name:
+          - DNS:{{ item }}
+          - DNS:edacontroller.{{ item.split(".", 1)[1] }}
+      loop: '{{ groups.edacontroller }}'
+      register: _edacontroller_csr
+
+    # TODO this causes a new cert to be generated every time, might want to
+    # see if the cert files already exist before doing the next two steps
+    - name: Sign EDA controller certificates with CA
+      community.crypto.x509_certificate_pipe:
+        csr_content: '{{ item.csr }}'
+        provider: ownca
+        ownca_path: '{{ playbook_dir }}/tf_builds/{{ ca_cert_file | default("demo-ca.pem") }}'
+        ownca_privatekey_path: '{{ playbook_dir }}/tf_builds/{{ ca_key_file | default("demo-ca.key") }}'
+        ownca_privatekey_passphrase: "{{ vault_ca_passphrase }}"
+        ownca_not_after: +30d  # valid for one year
+        ownca_not_before: "-1d"  # valid since yesterday
+      loop: '{{ _edacontroller_csr.results }}'
+      register: _edacontroller_certs
+      delegate_to: localhost
+
+    - name: Write EDA controller certificate files
+      ansible.builtin.copy:
+        dest: '~/{{ item.item.item }}.pem'
+        content: '{{ item.certificate }}'
+        mode: 0644
+      loop: '{{ _edacontroller_certs.results }}'
+
+    - name: Copy CA cert
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/tf_builds/{{ ca_cert_file | default("demo-ca.pem") }}'
+        dest: '~/{{ ca_cert_file | default("demo-ca.pem") }}'
+        mode: 0644
+
+...
+# vim: ft=yaml.ansible
