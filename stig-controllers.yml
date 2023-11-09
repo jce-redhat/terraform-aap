@@ -6,6 +6,8 @@
   vars_files:
     # needed for AAP version
     - vars/aap_setup.yml
+    # needed for ec2-user password
+    - vars/vault.yml
 
   vars:
     # proxy through bastion since controllers don't allow public SSH
@@ -25,6 +27,16 @@
         sysctl_user_max_user_namespaces: false
         mount_option_tmp_noexec: false
         mount_option_var_tmp_noexec: false
+        # default of 300 too short to install AAP interactively
+        var_logind_session_timeout: 7200
+
+    # if a console session gets locked, a password is required to unlock
+    - name: Set password for ec2-user
+      ansible.builtin.user:
+        name: ec2-user
+        state: present
+        password: '{{ vault_ec2_user_password | password_hash }}'
+      tags: ec2-user
 
     - name: Reboot controllers
       ansible.builtin.reboot:
