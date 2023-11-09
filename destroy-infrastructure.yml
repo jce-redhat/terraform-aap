@@ -21,8 +21,15 @@
         state: absent
       loop:
         - '{{ _tf_builddir }}/terraform.tfvars'
-        - '{{ _tf_builddir }}/local-state-copy.tfstate'
         - '{{ playbook_dir }}/inventory/terraform_provider.yml'
+
+    - name: Remove terraform S3 bucket backend
+      amazon.aws.s3_bucket:
+        name: '{{ terraform_state_aws_bucket }}'
+        region: '{{ terraform_state_aws_region }}'
+        state: absent
+        force: true
+      when: delete_s3_backend | default(false) | bool
 
 ...
 # vim: ft=yaml.ansible

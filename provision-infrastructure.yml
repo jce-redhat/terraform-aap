@@ -49,20 +49,11 @@
       cloud.terraform.terraform:
         project_path: '{{ _tf_builddir }}'
         state: present
-        force_init: '{{ terraform_force_init | default(false) }}'
+        force_init: '{{ terraform_force_init | default(true) }}'
         backend_config:
           region: '{{ terraform_state_aws_region }}'
           bucket: '{{ terraform_state_aws_bucket }}'
           key: '{{ terraform_state_aws_bucket_key }}'
-
-    # currently the terraform_provider inventory plugin cannot
-    # read remote state, only state from a local file
-    - name: Make local copy of terraform state
-      # noqa no-changed-when
-      # don't use "creates:" to ensure the latest state is always pulled
-      ansible.builtin.shell:
-        cmd: terraform state pull > local-state-copy.tfstate
-        chdir: '{{ _tf_builddir }}'
 
     - name: Create terraform dynamic inventory
       ansible.builtin.template:
