@@ -19,7 +19,9 @@ terraform_state_aws_region: '{{ terraform_aws_region }}'
 
 # overrides for variables.tf from the terraform configuration repo listed above
 terraform_tfvars:
-  aws_region: '{{ terraform_aws_region }}'
+  aap_aws_region: '{{ terraform_aws_region }}'
   bastion_key_name: '{{ terraform_build_name }}_key'
+  # public AWS Route 53 hosted zone used for AAP DNS records
+  aap_dns_zone: 'my-route53-domain.com'
 
 ...

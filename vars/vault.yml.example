@@ -7,6 +7,11 @@ vault_aap_setup_down_offline_token: eyJhbGciO...J9.habJ-UU
 # private automation hub as the 'admin' user
 vault_aap_admin_password: 'my-admin-password'
 
+# this password will be set for the ec2-user on hosts where the RHEL
+# STIG is applied, so that locked console sessions can be unlocked
+vault_ec2_user_password: 'my-ec2-user-password'
+
 # set if pulling initial content from an external registry
 vault_registry_password: 'my-registry-password'
+
 ...
